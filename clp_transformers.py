@@ -1,9 +1,9 @@
 ﻿"""
 clp_transformers.py — Custom sklearn transformers for CLP/USD model.
 
-Named 'clp_transformers' (not 'transformers') to avoid conflict with
-the HuggingFace 'transformers' package installed on Streamlit Cloud.
-The pkl must be re-saved from the notebook with __module__='clp_transformers'.
+# The pkl was re-saved from the notebook with __module__='clp_transformers'.
+# app_CLPUSD_logret.py injects proxy modules so this file covers any residual
+# module name the pkl might reference (__main__, transformers, clp_transformers).
 """
 import numpy as np
 import pandas as pd

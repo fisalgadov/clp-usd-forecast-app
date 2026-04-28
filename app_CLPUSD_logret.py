@@ -40,11 +40,37 @@ LOOKBACK_REF  = 5   # years in the historical reference section
 
 
 # ── Load artifact ─────────────────────────────────────────────────────────────
-# Classes are stored as 'transformers.ClassName' in the pkl (re-saved from
-# notebook). Plain joblib.load works as long as transformers.py is importable.
+# Robust loader: injects proxy modules for ALL possible module names the pkl
+# might use for our custom classes (__main__, transformers, clp_transformers),
+# so it works regardless of which name was stamped at save time.
 @st.cache_resource
 def load_artifact():
-    return joblib.load(ARTIFACT_PATH)
+    import sys, types
+    import clp_transformers as _ct
+
+    _CLS = {
+        'LogReturnTransformer':        _ct.LogReturnTransformer,
+        'MonthlyDiffTransformer':      _ct.MonthlyDiffTransformer,
+        'ForwardFillTransformer':      _ct.ForwardFillTransformer,
+        'SimpleImputerModel':          _ct.SimpleImputerModel,
+        'TargetPreprocessorLogReturn': _ct.TargetPreprocessorLogReturn,
+    }
+    # Temporarily inject proxy modules so pickle resolves any module name
+    _saved = {}
+    for _mod_name in ('__main__', 'transformers', 'clp_transformers'):
+        _saved[_mod_name] = sys.modules.get(_mod_name)
+        _proxy = types.ModuleType(_mod_name)
+        for _n, _c in _CLS.items():
+            setattr(_proxy, _n, _c)
+        sys.modules[_mod_name] = _proxy
+    try:
+        return joblib.load(ARTIFACT_PATH)
+    finally:
+        for _mod_name, _orig in _saved.items():
+            if _orig is None:
+                sys.modules.pop(_mod_name, None)
+            else:
+                sys.modules[_mod_name] = _orig
 
 art                     = load_artifact()
 model                   = art["model"]

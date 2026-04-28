@@ -1,9 +1,9 @@
 ﻿"""
-transformers.py — Custom sklearn transformers for CLP/USD model.
+clp_transformers.py — Custom sklearn transformers for CLP/USD model.
 
-Saved separately so that joblib.load resolves classes as
-'transformers.ClassName' instead of '__main__.ClassName'.
-The pkl must be re-saved from the notebook after patching __module__.
+Named 'clp_transformers' (not 'transformers') to avoid conflict with
+the HuggingFace 'transformers' package installed on Streamlit Cloud.
+The pkl must be re-saved from the notebook with __module__='clp_transformers'.
 """
 import numpy as np
 import pandas as pd

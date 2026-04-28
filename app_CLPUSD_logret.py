@@ -22,7 +22,7 @@ st.set_page_config(page_title="CLP/USD Forecast", layout="wide")
 # ── Custom transformers — imported from transformers.py ───────────────────────
 # The pkl was re-saved with __module__ = 'transformers', so pickle resolves
 # these classes via the importable module instead of __main__.
-from transformers import (
+from clp_transformers import (
     LogReturnTransformer,
     MonthlyDiffTransformer,
     ForwardFillTransformer,

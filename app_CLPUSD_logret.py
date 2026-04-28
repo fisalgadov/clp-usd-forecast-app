@@ -79,23 +79,31 @@ LOOKBACK_REF  = 5   # years in the historical reference section
 
 # ── Load artifact ─────────────────────────────────────────────────────────────
 # Pickle stored the transformer classes as __main__.ClassName (saved from a
-# notebook). On Streamlit Cloud, __main__ is the Streamlit runner, not our app.
-# We temporarily swap sys.modules['__main__'] with a fake module that has the
-# classes, so pickle.find_class resolves them correctly.
+# Jupyter notebook). Monkey-patch joblib's NumpyUnpickler.find_class so any
+# __main__.ClassName lookup is redirected to the classes defined here.
+_TRANSFORMER_MAP = {
+    cls.__name__: cls for cls in [
+        LogReturnTransformer, MonthlyDiffTransformer,
+        ForwardFillTransformer, SimpleImputerModel,
+        TargetPreprocessorLogReturn,
+    ]
+}
+
 @st.cache_resource
 def load_artifact():
-    import sys, types
-    _fake_main = types.ModuleType('__main__')
-    for _cls in [LogReturnTransformer, MonthlyDiffTransformer,
-                 ForwardFillTransformer, SimpleImputerModel,
-                 TargetPreprocessorLogReturn]:
-        setattr(_fake_main, _cls.__name__, _cls)
-    _real_main = sys.modules.get('__main__')
-    sys.modules['__main__'] = _fake_main
+    import joblib.numpy_pickle as _jnp
+    _orig_find_class = _jnp.NumpyUnpickler.find_class
+
+    def _patched_find_class(self, module, name):
+        if module == '__main__' and name in _TRANSFORMER_MAP:
+            return _TRANSFORMER_MAP[name]
+        return _orig_find_class(self, module, name)
+
+    _jnp.NumpyUnpickler.find_class = _patched_find_class
     try:
         return joblib.load(ARTIFACT_PATH)
     finally:
-        sys.modules['__main__'] = _real_main
+        _jnp.NumpyUnpickler.find_class = _orig_find_class
 
 art                     = load_artifact()
 model                   = art["model"]

@@ -7,21 +7,19 @@ Usage:
 """
 
 # ── Imports ──────────────────────────────────────────────────────────────────
-import joblib
-import numpy as np
-import pandas as pd
 import streamlit as st
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from pathlib import Path
 
 # ── MUST be the very first Streamlit call ────────────────────────────────────
 st.set_page_config(page_title="CLP/USD Forecast", layout="wide")
 
+import joblib
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from pathlib import Path
 
-# ── Custom transformers — imported from transformers.py ───────────────────────
-# The pkl was re-saved with __module__ = 'transformers', so pickle resolves
-# these classes via the importable module instead of __main__.
+# ── Custom transformers ───────────────────────────────────────────────────────
 from clp_transformers import (
     LogReturnTransformer,
     MonthlyDiffTransformer,

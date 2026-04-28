@@ -70,7 +70,8 @@ class TargetPreprocessorLogReturn(BaseEstimator, TransformerMixin):
 
 
 # ── Config ───────────────────────────────────────────────────────────────────
-ARTIFACT_PATH = Path(r'C:\Users\fsalgado\Python Scripts\Modelos\model_CLPUSD_logret.pkl')
+# Relative path — works locally and on Streamlit Cloud
+ARTIFACT_PATH = Path(__file__).parent / "model_CLPUSD_logret.pkl"
 N_MONTHS      = 12
 LOOKBACK_HIST = 3   # years in the scenario editor chart
 LOOKBACK_REF  = 5   # years in the historical reference section

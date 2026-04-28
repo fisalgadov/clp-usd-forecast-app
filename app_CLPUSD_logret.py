@@ -77,17 +77,25 @@ LOOKBACK_HIST = 3   # years in the scenario editor chart
 LOOKBACK_REF  = 5   # years in the historical reference section
 
 
-# ── Inject transformers into __main__ so pickle can find them on load ────────
-import __main__ as _main
-for _cls in [LogReturnTransformer, MonthlyDiffTransformer, ForwardFillTransformer,
-             SimpleImputerModel, TargetPreprocessorLogReturn]:
-    setattr(_main, _cls.__name__, _cls)
-
-
 # ── Load artifact ─────────────────────────────────────────────────────────────
+# Pickle stored the transformer classes as __main__.ClassName (saved from a
+# notebook). On Streamlit Cloud, __main__ is the Streamlit runner, not our app.
+# We temporarily swap sys.modules['__main__'] with a fake module that has the
+# classes, so pickle.find_class resolves them correctly.
 @st.cache_resource
 def load_artifact():
-    return joblib.load(ARTIFACT_PATH)
+    import sys, types
+    _fake_main = types.ModuleType('__main__')
+    for _cls in [LogReturnTransformer, MonthlyDiffTransformer,
+                 ForwardFillTransformer, SimpleImputerModel,
+                 TargetPreprocessorLogReturn]:
+        setattr(_fake_main, _cls.__name__, _cls)
+    _real_main = sys.modules.get('__main__')
+    sys.modules['__main__'] = _fake_main
+    try:
+        return joblib.load(ARTIFACT_PATH)
+    finally:
+        sys.modules['__main__'] = _real_main
 
 art                     = load_artifact()
 model                   = art["model"]

@@ -77,6 +77,13 @@ LOOKBACK_HIST = 3   # years in the scenario editor chart
 LOOKBACK_REF  = 5   # years in the historical reference section
 
 
+# ── Inject transformers into __main__ so pickle can find them on load ────────
+import __main__ as _main
+for _cls in [LogReturnTransformer, MonthlyDiffTransformer, ForwardFillTransformer,
+             SimpleImputerModel, TargetPreprocessorLogReturn]:
+    setattr(_main, _cls.__name__, _cls)
+
+
 # ── Load artifact ─────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_artifact():

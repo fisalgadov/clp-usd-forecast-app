@@ -97,14 +97,14 @@ LABELS = {rc: _AUTO_LABELS.get(rc, rc) for rc in raw_col_list}
 
 # Variable descriptions for the info panel
 _VAR_DESC = {
-    "Precio_Cobre":    "Global copper spot price (USD/lb). Key driver of Chilean export revenue. **Higher copper → stronger CLP** (lower USD/CLP). Applied as monthly log-return.",
-    "Dolar_index":     "DXY — broad measure of USD strength vs major currencies. **Higher DXY → weaker CLP** (higher USD/CLP). Applied as monthly log-return.",
-    "VIX":             "CBOE Volatility Index, proxy for global risk aversion. **Higher VIX → risk-off, EM outflows → weaker CLP**. Applied as monthly log-return.",
-    "Chile_CDS":       "Chile 5Y Credit Default Swap spread (bp), measures sovereign credit risk. **Higher CDS → higher country risk → weaker CLP**. Applied as monthly difference.",
-    "USA_Swap_Inf_1Y": "US 1-year inflation swap rate. Reflects short-term US inflation expectations. **Higher → Fed tightening expectations → stronger USD → weaker CLP**. Applied as monthly difference.",
-    "USA_Swap_Inf_2Y": "US 2-year inflation swap rate. Reflects short-term US inflation expectations. **Higher → Fed tightening expectations → stronger USD → weaker CLP**. Applied as monthly difference.",
-    "Chile_Bond_1Y":   "Chilean 1-year government bond yield. Higher local rates can attract capital inflows. Applied as monthly difference.",
-    "Chile_Bond_10Y":  "Chilean 10-year government bond yield. Reflects long-term country risk premium and monetary conditions. Applied as monthly difference.",
+    "Precio_Cobre":    "Global copper spot price (USD/lb). Key driver of Chilean export revenue — Chile is the world's largest copper producer. **Higher copper → stronger CLP** (lower USD/CLP). Applied as monthly log-return.",
+    "Dolar_index":     "DXY — ICE broad measure of USD strength against a basket of major currencies. **Higher DXY → weaker CLP** (higher USD/CLP). Applied as monthly log-return.",
+    "VIX":             "CBOE Volatility Index, market's expectation of 30-day S&P 500 volatility. Proxy for global risk aversion. **Higher VIX → risk-off, EM capital outflows → weaker CLP**. Applied as monthly log-return.",
+    "Chile_CDS":       "Chile 5-year Credit Default Swap spread (basis points). Measures sovereign credit risk and country-specific uncertainty. **Higher CDS → higher perceived country risk → weaker CLP**. Applied as monthly difference.",
+    "USA_Swap_Inf_1Y": "US 1-year inflation swap rate. Reflects market's short-term US inflation expectations. **Higher → Fed tightening expectations → stronger USD → weaker CLP**. Applied as monthly difference.",
+    "USA_Swap_Inf_2Y": "US 2-year inflation swap rate. Reflects market's medium-term US inflation expectations and Fed rate-path pricing. **Higher → tighter Fed expectations → stronger USD → weaker CLP**. Applied as monthly difference.",
+    "Chile_Bond_1Y":   "Chilean 1-year central government bond yield. Higher short-term local rates can attract foreign capital inflows, supporting the CLP. Applied as monthly difference.",
+    "Chile_Bond_10Y":  "Chilean 10-year central government bond yield. Reflects long-term country risk premium, inflation outlook, and monetary conditions. Applied as monthly difference.",
 }
 
 
@@ -175,14 +175,16 @@ with st.expander("📖  About the Model", expanded=True):
     st.markdown("""
 ### CLP/USD Monthly Log-Return Model
 
-This app uses a **linear regression model** trained on **monthly data** to forecast the Chilean Peso / US Dollar exchange rate.
+This app uses an **ensemble model (Voting Regressor: Random Forest + Ridge, weights 1:3)**
+trained on **monthly data** to forecast the Chilean Peso / US Dollar exchange rate.
 
 **Methodology**
 - **Target variable**: Monthly log-return of CLP/USD — $\\log(FX_t / FX_{t-1})$
-- **Prediction equation**: $FX_t = FX_{t-1} \\times e^{\\hat{y}_t}$ where $\\hat{y}_t = \\sum_i \\beta_i \\cdot X_i(t)$
+- **Prediction equation**: $FX_t = FX_{t-1} \\times e^{\\hat{y}_t}$
+- **Ensemble**: Ridge regression (75% weight) + Random Forest (25% weight), blended via soft voting on standardized log-return features
 - **Feature engineering**: Price/index series → monthly log-return $\\Delta\\log(X)$; Rate/spread series → monthly difference $\\Delta X = X_t - X_{t-1}$
 - **Scenario usage**: Enter the **raw level** of each variable for each future month. The app computes the correct transformation automatically.
-- **Training**: Time-series cross-validation, test period reserved for evaluation.
+- **Training**: Time-series cross-validation (expanding window); hold-out test set reserved for final evaluation.
 """)
 
     st.markdown("---")
